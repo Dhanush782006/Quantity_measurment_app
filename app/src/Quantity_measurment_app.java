@@ -1,38 +1,91 @@
-public class Quantity_measurment_app {
-        public static class Feet {
-            private final double value;
-            public Feet(double value) {
-                this.value = value;
-            }
-            public double getValue() {
-                return value;
-            }
-            @Override
-            public boolean equals(Object obj) {
+class Quantity_measurement_app {
 
-                if (this == obj) return true;
+    enum Unit {
+        FEET, INCH
+    }
 
-                if (obj == null || getClass() != obj.getClass()) return false;
+    static class Quantity {
+        private final double value;
+        private final Unit unit;
 
-                Feet other = (Feet) obj;
-
-                return Double.compare(this.value, other.value) == 0;
+        public Quantity(double value, Unit unit) {
+            if (Double.isNaN(value)) {
+                throw new IllegalArgumentException("Invalid numeric value");
             }
-            @Override
-            public int hashCode() {
-                return Double.hashCode(value);
-            }
+            this.value = value;
+            this.unit = unit;
         }
-        public static void main(String[] args) {
 
-            Feet a = new Feet(1.0);
-            Feet b = new Feet(1.0);
-            Feet c = new Feet(2.0);
+        private double toInches() {
+            if (unit == Unit.FEET) {
+                return value * 12;
+            }
+            return value;
+        }
 
-            System.out.println("Test 1: Same Value (1.0 vs 1.0) -> " + a.equals(b)); // true
-            System.out.println("Test 2: Different Value (1.0 vs 2.0) -> " + a.equals(c)); // false
-            System.out.println("Test 3: Null Comparison -> " + a.equals(null)); // false
-            System.out.println("Test 4: Non-Numeric Input -> " + a.equals("text")); // false
-            System.out.println("Test 5: Same Reference -> " + a.equals(a)); // true
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+
+            Quantity other = (Quantity) obj;
+            return Double.compare(this.toInches(), other.toInches()) == 0;
         }
     }
+
+    // Helper methods
+    public static boolean compareFeet(double a, double b) {
+        return new Quantity(a, Unit.FEET)
+                .equals(new Quantity(b, Unit.FEET));
+    }
+
+    public static boolean compareInches(double a, double b) {
+        return new Quantity(a, Unit.INCH)
+                .equals(new Quantity(b, Unit.INCH));
+    }
+
+    public static boolean compareFeetAndInches(double feet, double inches) {
+        return new Quantity(feet, Unit.FEET)
+                .equals(new Quantity(inches, Unit.INCH));
+    }
+
+    // Simple test simulation
+    public static void runTests() {
+        System.out.println("testEquality_SameValue: " +
+                new Quantity(1.0, Unit.INCH).equals(new Quantity(1.0, Unit.INCH)));
+
+        System.out.println("testEquality_DifferentValue: " +
+                !new Quantity(1.0, Unit.INCH).equals(new Quantity(2.0, Unit.INCH)));
+
+        System.out.println("testEquality_NullComparison: " +
+                !new Quantity(1.0, Unit.INCH).equals(null));
+
+        Quantity q = new Quantity(1.0, Unit.INCH);
+        System.out.println("testEquality_SameReference: " + q.equals(q));
+
+        System.out.println("testEquality_FeetToInch: " +
+                new Quantity(1.0, Unit.FEET).equals(new Quantity(12.0, Unit.INCH)));
+
+        try {
+            new Quantity(Double.NaN, Unit.INCH);
+            System.out.println("testEquality_NonNumericInput: false");
+        } catch (IllegalArgumentException e) {
+            System.out.println("testEquality_NonNumericInput: true");
+        }
+    }
+
+    public static void main(String[] args) {
+
+        System.out.println("Input: 1.0 inch and 1.0 inch -> " +
+                compareInches(1.0, 1.0));
+
+        System.out.println("Input: 1.0 ft and 1.0 ft -> " +
+                compareFeet(1.0, 1.0));
+
+        System.out.println("Input: 1.0 ft and 12.0 inch -> " +
+                compareFeetAndInches(1.0, 12.0));
+
+        System.out.println("\nRunning Tests:");
+        runTests();
+    }
+}
